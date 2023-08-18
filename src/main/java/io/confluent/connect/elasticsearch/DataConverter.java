@@ -247,9 +247,15 @@ public class DataConverter {
       DocWriteRequest<?> request,
       SinkRecord record
   ) {
-    if (!config.isDataStream() && !config.shouldIgnoreKey(record.topic())) {
+    if (!config.shouldIgnoreVersion()
+        && !config.isDataStream()
+        && !config.shouldIgnoreKey(record.topic())) {
+      log.debug("Adding external versioning to {} with offset {}, the ignore setting is {}",
+          recordString(record), record.kafkaOffset(), config.shouldIgnoreVersion());
       request.versionType(VersionType.EXTERNAL);
       request.version(record.kafkaOffset());
+    } else {
+      log.trace("Not adding external versioning to {}", recordString(record));
     }
 
     return request;
